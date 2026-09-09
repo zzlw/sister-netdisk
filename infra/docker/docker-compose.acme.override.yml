@@ -1,0 +1,5 @@
+# 生产机已有 sister-netdisk-acme:prod 时叠加，避免每次 deploy 再 build acme
+services:
+  acme:
+    build: null
+    image: sister-netdisk-acme:prod

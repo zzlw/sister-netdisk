@@ -1,0 +1,121 @@
+name: sister-netdisk
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sister-netdisk}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      POSTGRES_DB: ${POSTGRES_DB:-sister-netdisk_prod}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sister-netdisk} -d ${POSTGRES_DB:-sister-netdisk_prod}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: ${IMAGE_REGISTRY}/sister-netdisk-api:${API_TAG:-${IMAGE_TAG:-latest}}
+    restart: unless-stopped
+    mem_limit: 512m
+    env_file: .env.prod
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_URL: ${DATABASE_URL}
+      NODE_OPTIONS: "--max-old-space-size=384"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  web:
+    image: ${IMAGE_REGISTRY}/sister-netdisk-web:${WEB_TAG:-${IMAGE_TAG:-latest}}
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      API_INTERNAL_URL: http://api:3000
+      NODE_OPTIONS: "--max-old-space-size=256"
+    depends_on:
+      api:
+        condition: service_healthy
+    expose:
+      - "3000"
+
+  admin:
+    image: ${IMAGE_REGISTRY}/sister-netdisk-admin:${ADMIN_TAG:-${IMAGE_TAG:-latest}}
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      API_INTERNAL_URL: http://api:3000
+      NODE_OPTIONS: "--max-old-space-size=256"
+    depends_on:
+      api:
+        condition: service_healthy
+    expose:
+      - "3000"
+
+  gateway:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      WEB_DOMAIN: ${WEB_DOMAIN}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+      BASE_DOMAIN: ${BASE_DOMAIN}
+      NGINX_ENVSUBST_FILTER: DOMAIN
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - ./nginx/snippets:/etc/nginx/snippets:ro
+      - ./nginx/entrypoint.d/90-periodic-reload.sh:/docker-entrypoint.d/90-periodic-reload.sh:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - api
+      - web
+      - admin
+
+  acme:
+    image: sister-netdisk-acme:prod
+    build: ./acme
+    restart: unless-stopped
+    command: daemon
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL}
+      BASE_DOMAIN: ${BASE_DOMAIN}
+      Ali_Key: ${ALI_KEY:-}
+      Ali_Secret: ${ALI_SECRET:-}
+      CF_API_TOKEN: ${CF_API_TOKEN:-}
+      CF_ZONE_ID: ${CF_ZONE_ID:-}
+    volumes:
+      - acme-data:/acme.sh
+      - ./nginx/certs:/certs
+      - ./acme:/scripts:ro
+
+volumes:
+  pgdata:
+  acme-data:

@@ -1,0 +1,22 @@
+@import "@repo/ui/globals.css";
+@source "../../../../packages/ui/src/**/*.{ts,tsx}";
+
+/* 品牌色只改这里，其余 token 在 @repo/ui。 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: theme-reveal 0.45s ease-out;
+}
+
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--theme-x, 50%) var(--theme-y, 50%));
+  }
+  to {
+    clip-path: circle(150vmax at var(--theme-x, 50%) var(--theme-y, 50%));
+  }
+}

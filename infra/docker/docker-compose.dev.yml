@@ -1,0 +1,77 @@
+# 应用跑在宿主机，依赖跑在容器。
+# pnpm db:up / db:down / db:logs / db:clean
+# 本地对象存储用 RustFS（S3 兼容）。生产走阿里云 OSS，不要自建。
+name: sister-netdisk
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sister-netdisk_postgres_dev
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_HOST_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dev
+
+  rustfs_perms:
+    image: busybox:1.37
+    profiles: ["storage"]
+    user: root
+    command: chown -R 10001:10001 /data
+    volumes:
+      - rustfs_data:/data
+    networks:
+      - dev
+
+  rustfs:
+    image: rustfs/rustfs:1.0.0-rc.5
+    profiles: ["storage"]
+    container_name: sister-netdisk_rustfs_dev
+    restart: unless-stopped
+    depends_on:
+      rustfs_perms:
+        condition: service_completed_successfully
+    ports:
+      - "${S3_HOST_PORT}:9000"
+      - "${S3_CONSOLE_PORT}:9001"
+    environment:
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY_ID}
+      RUSTFS_SECRET_KEY: ${S3_ACCESS_KEY_SECRET}
+      RUSTFS_CORS_ALLOWED_ORIGINS: ${CORS_ORIGINS}
+    volumes:
+      - rustfs_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - dev
+
+volumes:
+  pg_data:
+    name: sister-netdisk_pg_data
+  rustfs_data:
+    name: sister-netdisk_rustfs_data
+
+networks:
+  dev:
+    name: sister-netdisk_dev
+    driver: bridge

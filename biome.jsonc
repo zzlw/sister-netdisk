@@ -1,0 +1,83 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.12/schema.json",
+  // 全仓唯一的 lint / 格式化配置。没有 ESLint，没有 Prettier。
+  // 类型检查不归它管，那是 `pnpm typecheck`（tsc --noEmit）。
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/.turbo",
+      "!**/dist",
+      "!**/coverage",
+      "!**/next-env.d.ts",
+      // Drizzle 生成的迁移，不碰
+      "!packages/db/drizzle",
+      // 静态资源不是源码。Biome 会把 public 里的 .svg 当代码检 a11y，
+      // 但资源图的替代文本该写在引用它的 <img alt> 上
+      "!apps/*/public",
+      // Tailwind v4 的 CSS 全是 @theme / @custom-variant / @source 这类自定义
+      // at-rule，交给 Tailwind 自己管，Biome 不插手
+      "!**/*.css"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 80
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always"
+    },
+    "parser": {
+      // NestJS 的 @Body() / @Param() / @Session() 是参数装饰器，
+      // 不开这个 Biome 直接解析失败（Decorators are not valid here）
+      "unsafeParameterDecoratorsEnabled": true
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      // Nest 构造注入要保留值导入。useImportType 会收成 import type，
+      // 运行时 metadata 就丢了，启动报 UnknownDependenciesException。
+      "style": {
+        "useImportType": "off"
+      }
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "overrides": [
+    {
+      // shadcn 装进来的代码我们不维护，不 lint 也不格式化，
+      // 免得每次 `shadcn add` 都和上游对不上。我们自己写的几个反选回来。
+      "includes": [
+        "packages/ui/src/components/**",
+        "packages/ui/src/hooks/**",
+        "apps/admin/src/components/app-sidebar.tsx",
+        "apps/admin/src/components/chart-area-interactive.tsx",
+        "apps/admin/src/components/data-table.tsx",
+        "apps/admin/src/components/nav-documents.tsx",
+        "apps/admin/src/components/nav-secondary.tsx",
+        "apps/admin/src/components/section-cards.tsx",
+        "!packages/ui/src/components/login-form.tsx",
+        "!packages/ui/src/components/overlay-scrollbars.tsx",
+        "!packages/ui/src/components/scroll-area.tsx",
+        "!packages/ui/src/components/theme-mode-toggle.tsx"
+      ],
+      "formatter": { "enabled": false },
+      "linter": { "enabled": false },
+      "assist": { "actions": { "source": { "organizeImports": "off" } } }
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "globalDependencies": [".env", "**/.env", "**/.env.local"],
+  "globalPassThroughEnv": [
+    "NODE_ENV",
+    "API_PORT",
+    "WEB_PORT",
+    "ADMIN_PORT",
+    "DATABASE_URL",
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "CORS_ORIGINS",
+    "NEXT_PUBLIC_API_URL",
+    "NEXT_PUBLIC_WEB_URL",
+    "NEXT_PUBLIC_ADMIN_URL",
+    "NEXT_PUBLIC_S3_PUBLIC_DOMAIN",
+    "API_INTERNAL_URL"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "generate": {
+      "cache": false
+    },
+    "migrate": {
+      "cache": false
+    },
+    "studio": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

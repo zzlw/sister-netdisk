@@ -1,0 +1,41 @@
+{
+  "name": "sister-netdisk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "sister-netdisk monorepo — web / admin / api",
+  "license": "MIT",
+  "scripts": {
+    "dev": "dotenv -e .env -- turbo dev",
+    "dev:web": "turbo dev --filter=@repo/web",
+    "dev:admin": "turbo dev --filter=@repo/admin",
+    "dev:api": "turbo dev --filter=@repo/api",
+    "build": "turbo build",
+    "lint": "biome ci .",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "test:e2e": "dotenv -e .env -- bash scripts/e2e-api.sh",
+    "check": "bash scripts/ci-local.sh",
+    "db:up": "docker compose --env-file .env -f infra/docker/docker-compose.dev.yml up -d postgres",
+    "storage:up": "docker compose --env-file .env -f infra/docker/docker-compose.dev.yml --profile storage up -d",
+    "db:down": "docker compose --env-file .env -f infra/docker/docker-compose.dev.yml --profile storage down",
+    "db:logs": "docker compose --env-file .env -f infra/docker/docker-compose.dev.yml --profile storage logs -f",
+    "db:clean": "docker compose --env-file .env -f infra/docker/docker-compose.dev.yml --profile storage down -v",
+    "db:generate": "dotenv -e .env -- pnpm --filter @repo/db generate",
+    "db:migrate": "dotenv -e .env -- pnpm --filter @repo/db migrate",
+    "db:seed": "dotenv -e .env -- pnpm --filter @repo/db seed",
+    "db:studio": "dotenv -e .env -- pnpm --filter @repo/db studio",
+    "format": "biome check --write ."
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.10",
+    "dotenv-cli": "^10.0.0",
+    "turbo": "^2.5.8",
+    "typescript": "catalog:",
+    "@biomejs/biome": "2.5.12"
+  },
+  "packageManager": "pnpm@10.17.0",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10"
+  }
+}
