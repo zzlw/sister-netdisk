@@ -13,6 +13,10 @@ function isTimeout(err: unknown): boolean {
   return name === "TimeoutError" || name === "AbortError";
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 @Injectable()
 export class PansouClient implements OnModuleInit {
   private readonly logger = new Logger(PansouClient.name);
@@ -29,12 +33,17 @@ export class PansouClient implements OnModuleInit {
   }
 
   async search(body: Record<string, unknown>): Promise<unknown> {
-    try {
-      return await this.searchOnce(body);
-    } catch {
-      this.logger.warn("pansou search retry after wake");
-      return await this.searchOnce(body);
+    const attempts = 2;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        return await this.searchOnce(body);
+      } catch (err) {
+        if (attempt === attempts) throw err;
+        this.logger.warn(`pansou search retry ${attempt} after wake`);
+        await sleep(10_000);
+      }
     }
+    throw new BadGatewayException("搜索服务暂时不可用");
   }
 
   private async searchOnce(body: Record<string, unknown>): Promise<unknown> {

@@ -1,4 +1,4 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, Query } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { type HealthResponse, healthResponseSchema } from "@repo/shared";
 import { AllowAnonymous } from "@thallesp/nestjs-better-auth";
@@ -19,11 +19,12 @@ export class HealthController {
     description: "进程存活",
     type: HealthResponseDto,
   })
-  async get(): Promise<HealthResponse> {
+  async get(@Query("wake") wake?: string): Promise<HealthResponse> {
+    const waitMs = wake === "1" || wake === "true" ? 25_000 : 2_000;
     return {
       ok: true,
       service: "api",
-      pansou: await this.pansou.health(),
+      pansou: await this.pansou.health(waitMs),
     };
   }
 }

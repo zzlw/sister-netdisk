@@ -97,7 +97,7 @@ export function SearchHome() {
   }, [filters.q]);
 
   useEffect(() => {
-    void fetch("/api/health", { cache: "no-store" });
+    void fetch("/api/health?wake=1", { cache: "no-store" });
   }, []);
 
   const queryString = useMemo(
@@ -127,35 +127,32 @@ export function SearchHome() {
     let cancelled = false;
     setPending(true);
     setError(null);
-    fetch(`/api/resources/search${queryString ? `?${queryString}` : ""}`, {
-      credentials: "same-origin",
-    })
-      .then(async (res) => {
-        const body = (await res.json().catch(() => null)) as
-          | ResourceSearchResponse
-          | { error?: unknown }
-          | null;
-        if (!res.ok) {
-          const message =
-            body &&
-            typeof body === "object" &&
-            "error" in body &&
-            typeof body.error === "string"
-              ? body.error
-              : "搜索失败";
-          throw new Error(message);
+    void (async () => {
+      try {
+        let body: ResourceSearchResponse;
+        try {
+          body = await fetchSearch(queryString);
+        } catch (err) {
+          if (
+            cancelled ||
+            !(err instanceof Error) ||
+            !isTransientSearchError(err.message)
+          ) {
+            throw err;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 8_000));
+          if (cancelled) return;
+          body = await fetchSearch(queryString);
         }
-        return body as ResourceSearchResponse;
-      })
-      .then((body) => {
         if (!cancelled) setData(body);
-      })
-      .catch((err: Error) => {
-        if (!cancelled) setError(err.message);
-      })
-      .finally(() => {
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "搜索失败");
+        }
+      } finally {
         if (!cancelled) setPending(false);
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };
@@ -450,6 +447,34 @@ function searchQueryString(input: {
     params.set("pageSize", String(input.pageSize));
   }
   return params.toString();
+}
+
+function isTransientSearchError(message: string) {
+  return /暂时不可用|搜索超时/.test(message);
+}
+
+async function fetchSearch(
+  queryString: string,
+): Promise<ResourceSearchResponse> {
+  const res = await fetch(
+    `/api/resources/search${queryString ? `?${queryString}` : ""}`,
+    { credentials: "same-origin" },
+  );
+  const body = (await res.json().catch(() => null)) as
+    | ResourceSearchResponse
+    | { error?: unknown }
+    | null;
+  if (!res.ok) {
+    const message =
+      body &&
+      typeof body === "object" &&
+      "error" in body &&
+      typeof body.error === "string"
+        ? body.error
+        : "搜索失败";
+    throw new Error(message);
+  }
+  return body as ResourceSearchResponse;
 }
 
 function searchHref(input: {
