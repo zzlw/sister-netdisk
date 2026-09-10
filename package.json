@@ -16,6 +16,8 @@
     "test:e2e": "dotenv -e .env -- bash scripts/e2e-api.sh",
     "check": "bash scripts/ci-local.sh",
     "db:up": "docker compose --env-file .env -f infra/docker/docker-compose.dev.yml up -d postgres",
+    "pansou:up": "docker compose --env-file .env -f infra/docker/docker-compose.dev.yml up -d pansou",
+    "pansou:down": "docker compose --env-file .env -f infra/docker/docker-compose.dev.yml stop pansou",
     "storage:up": "docker compose --env-file .env -f infra/docker/docker-compose.dev.yml --profile storage up -d",
     "db:down": "docker compose --env-file .env -f infra/docker/docker-compose.dev.yml --profile storage down",
     "db:logs": "docker compose --env-file .env -f infra/docker/docker-compose.dev.yml --profile storage logs -f",

@@ -1,0 +1,9 @@
+# Railway Pansou 服务：镜像在控制台选 Docker Image，Config-as-code 指到本文件。
+# 不要用 NIXPACKS 编源码。不要 sleep（冷启动搜一次要几十秒）。
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+sleepApplication = false
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

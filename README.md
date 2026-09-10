@@ -8,7 +8,7 @@
 
 pnpm + Turborepo。`apps/web` / `apps/admin` 为 Next.js 16，`apps/api` 为 NestJS 11。鉴权、业务、数据库只在 Nest；前端经 `/api` rewrite 调用。
 
-全网搜索计划旁挂官方镜像 [`ghcr.io/fish2018/pansou`](https://github.com/fish2018/pansou)，见 `技术方案.md`（尚未落地）。
+全网搜索旁挂官方镜像 [`ghcr.io/fish2018/pansou`](https://github.com/fish2018/pansou)。Nest 转发，浏览器不直连。见 `技术方案.md`。
 
 ## 本地
 
@@ -17,10 +17,11 @@ pnpm install
 pnpm db:up
 pnpm db:migrate
 pnpm db:seed
+pnpm pansou:up
 pnpm dev
 ```
 
-端口段 NN=35：API `3500` / web `3501` / admin `3502` / Postgres `3532`。不要改成 `3000` / `5432`。
+端口段 NN=35：API `3500` / web `3501` / admin `3502` / Postgres `3532` / Pansou `3588`。不要改成 `3000` / `5432`。
 
 本地账密由 seed 写入：员工 `admin@example.com` / `password` 只登后台，会员 `user@example.com` / `password` 只登 C 端。复制 `.env.example` 为 `.env`，不要提交真实密钥。
 

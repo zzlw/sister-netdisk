@@ -6,8 +6,10 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { auth } from "./auth";
 import { HealthController } from "./health.controller";
+import { PansouClient } from "./pansou.client";
 import { ResourcesController } from "./resources.controller";
 import { ResourcesService } from "./resources.service";
+import { ShareLivenessService } from "./share-liveness.service";
 import { UsersController } from "./users.controller";
 
 @Module({
@@ -20,7 +22,9 @@ import { UsersController } from "./users.controller";
   ],
   providers: [
     AppService,
+    PansouClient,
     ResourcesService,
+    ShareLivenessService,
     { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
   ],
 })

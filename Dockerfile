@@ -1,4 +1,4 @@
-# Nest API。生产由 nginx 反代，不要把这个镜像单独暴露到公网。
+# Render 从仓库根构建 Nest API。内容和 infra/docker/Dockerfile.api 保持一致。
 FROM node:22-bookworm-slim AS deps
 WORKDIR /app
 RUN corepack enable

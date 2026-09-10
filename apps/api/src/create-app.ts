@@ -5,11 +5,16 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import { cleanupOpenApiDoc, ZodValidationPipe } from "nestjs-zod";
 import { AppModule } from "./app.module";
+import { authTrustedOrigins } from "./auth";
 import { env } from "./env";
 import { HttpExceptionFilter } from "./http-exception.filter";
 
 export async function createApp() {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
+  const expressApp = app.getHttpAdapter().getInstance() as {
+    set?: (key: string, value: unknown) => void;
+  };
+  expressApp.set?.("trust proxy", 1);
   app.setGlobalPrefix("api");
   app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalFilters(new HttpExceptionFilter());
@@ -24,12 +29,17 @@ export async function createApp() {
     standardHeaders: "draft-8",
     legacyHeaders: false,
   });
+  const searchLimit = rateLimit({
+    windowMs: 60_000,
+    limit: env.NODE_ENV === "production" ? 30 : 200,
+    standardHeaders: "draft-8",
+    legacyHeaders: false,
+  });
   app.use("/api/auth/sign-in", authLimit);
   app.use("/api/auth/sign-up", authLimit);
+  app.use("/api/resources/search", searchLimit);
   app.enableCors({
-    origin: env.CORS_ORIGINS.split(",")
-      .map((s) => s.trim())
-      .filter(Boolean),
+    origin: authTrustedOrigins,
     credentials: true,
   });
 

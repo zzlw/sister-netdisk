@@ -9,11 +9,8 @@ export default function NotFound() {
     >
       <h1 className="text-xl font-semibold">页面不存在</h1>
       <p className="text-muted-foreground text-sm">这个地址没有对应页面。</p>
-      <Link
-        href="/resources"
-        className={buttonVariants({ className: "w-fit" })}
-      >
-        回资源
+      <Link href="/users" className={buttonVariants({ className: "w-fit" })}>
+        回用户
       </Link>
     </main>
   );

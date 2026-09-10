@@ -1,6 +1,6 @@
 # AGENTS.md
 
-网盘妹。用户搜索已收录的网盘分享，点结果跳到对应网盘。本站不存文件。约定以开发者本机 `~/.cursor/skills/new-website/defaults.md` 为准。
+网盘妹。用户搜索聚合的公开分享，点结果跳原盘。本站不收录、不存文件。约定以开发者本机 `~/.cursor/skills/new-website/defaults.md` 为准。
 
 ## 栈
 
@@ -16,8 +16,8 @@
 ## 命令
 
 - 安装：`pnpm install`
-- 依赖容器：`pnpm db:up`（只要 Postgres）；迁移：`pnpm db:migrate`；本地账密：`pnpm db:seed`（员工 `DEV_ADMIN_*`，会员 `DEV_USER_*`）；对象存储：`pnpm storage:up`
-- 开发：`pnpm dev`
+- 依赖容器：`pnpm db:up`（只要 Postgres）；搜索引擎：`pnpm pansou:up`（官方 `ghcr.io/fish2018/pansou`，宿主机 `3588`）；迁移：`pnpm db:migrate`；本地账密：`pnpm db:seed`（员工 `DEV_ADMIN_*`，会员 `DEV_USER_*`）；对象存储：`pnpm storage:up`
+- 开发：`pnpm pansou:up && pnpm dev`
 - 构建：`pnpm build`
 - 校验：`pnpm lint`（Biome，只读）/ `pnpm format`（Biome 自动修）/ `pnpm typecheck` / `pnpm test`
 - API 联调自检：`pnpm test:e2e`（先 `pnpm db:up && pnpm db:migrate && pnpm dev:api`）

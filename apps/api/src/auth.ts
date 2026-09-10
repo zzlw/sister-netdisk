@@ -4,16 +4,44 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { env } from "./env";
 
-const trustedOrigins = env.CORS_ORIGINS.split(",")
-  .map((s) => s.trim())
-  .filter(Boolean);
+function originOf(url: string) {
+  return url.replace(/\/$/, "");
+}
+
+function hostsFromOrigin(origin: string): string[] {
+  try {
+    const url = new URL(origin);
+    return url.port ? [url.host] : [url.hostname];
+  } catch {
+    return [];
+  }
+}
 
 const webOrigins = [env.WEB_URL, env.NEXT_PUBLIC_WEB_URL]
   .filter((s): s is string => Boolean(s))
-  .map((s) => s.replace(/\/$/, ""));
+  .map(originOf);
 const adminOrigins = [env.ADMIN_URL, env.NEXT_PUBLIC_ADMIN_URL]
   .filter((s): s is string => Boolean(s))
-  .map((s) => s.replace(/\/$/, ""));
+  .map(originOf);
+
+export const authTrustedOrigins = [
+  ...new Set(
+    [
+      ...env.CORS_ORIGINS.split(",").map((s) => s.trim()),
+      ...webOrigins,
+      ...adminOrigins,
+    ]
+      .filter(Boolean)
+      .map(originOf),
+  ),
+];
+
+const allowedHosts = [
+  ...new Set([
+    ...authTrustedOrigins.flatMap(hostsFromOrigin),
+    ...hostsFromOrigin(env.BETTER_AUTH_URL),
+  ]),
+];
 
 function requestOrigin(headers?: Headers) {
   return (headers?.get("origin") ?? "").replace(/\/$/, "");
@@ -28,10 +56,18 @@ function isAdminOrigin(origin: string) {
 }
 
 export const auth = betterAuth({
-  baseURL: env.BETTER_AUTH_URL,
+  baseURL: {
+    allowedHosts,
+    fallback: env.BETTER_AUTH_URL,
+    protocol: env.NODE_ENV === "production" ? "https" : "auto",
+  },
   basePath: "/api/auth",
   secret: env.BETTER_AUTH_SECRET,
-  trustedOrigins,
+  trustedOrigins: authTrustedOrigins,
+  advanced: {
+    // Vercel rewrite 后 Host 是 Railway；必须认 X-Forwarded-Host / Proto。
+    trustedProxyHeaders: true,
+  },
   database: drizzleAdapter(db, { provider: "pg", schema }),
   emailAndPassword: { enabled: true },
   session: {

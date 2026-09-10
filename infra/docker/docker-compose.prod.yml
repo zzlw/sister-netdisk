@@ -17,6 +17,31 @@ services:
       timeout: 5s
       retries: 5
 
+  pansou:
+    # 锁定官方 API（不要 pansou-web）。不要 ports，只给 Nest 内网访问。
+    # tag 对应 fish2018/pansou@f6c3041（2026-09-10）；digest 是该构建的 multi-arch index。
+    image: ghcr.io/fish2018/pansou:sha-f6c3041@sha256:0951534e40a644a2b5777144df0684dae729d536b02925b661b9b6da0aa14099
+    restart: unless-stopped
+    mem_limit: 1024m
+    env_file:
+      - ./pansou.env
+    environment:
+      PORT: "8888"
+    volumes:
+      - pansou_cache:/cache
+    expose:
+      - "8888"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:8888/api/health >/dev/null || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+
   api:
     image: ${IMAGE_REGISTRY}/sister-netdisk-api:${API_TAG:-${IMAGE_TAG:-latest}}
     restart: unless-stopped
@@ -26,10 +51,15 @@ services:
       NODE_ENV: production
       PORT: "3000"
       DATABASE_URL: ${DATABASE_URL}
+      PANSOU_URL: http://pansou:8888
+      PANSOU_TIMEOUT_MS: "10000"
+      PANSOU_CACHE_TTL_MS: "60000"
       NODE_OPTIONS: "--max-old-space-size=384"
     depends_on:
       postgres:
         condition: service_healthy
+      pansou:
+        condition: service_started
     expose:
       - "3000"
     healthcheck:
@@ -119,3 +149,4 @@ services:
 volumes:
   pgdata:
   acme-data:
+  pansou_cache:

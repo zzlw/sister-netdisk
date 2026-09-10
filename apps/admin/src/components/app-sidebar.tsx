@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { FolderIcon, HardDriveIcon, UsersIcon } from "lucide-react";
+import { HardDriveIcon, UsersIcon } from "lucide-react";
 import Link from "next/link";
 
 import { NavMain } from "@/components/nav-main";
@@ -18,10 +18,7 @@ import {
 } from "@repo/ui/components/sidebar";
 
 const data = {
-  navMain: [
-    { title: "资源", url: "/resources", icon: FolderIcon },
-    { title: "用户", url: "/users", icon: UsersIcon },
-  ],
+  navMain: [{ title: "用户", url: "/users", icon: UsersIcon }],
   navSecondary: [] as {
     title: string;
     url: string;
@@ -37,7 +34,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               className="data-[slot=sidebar-menu-button]:p-1.5!"
-              render={<Link href="/resources" />}
+              render={<Link href="/users" />}
             >
               <HardDriveIcon className="size-5!" />
               <span className="text-base font-semibold">网盘妹</span>

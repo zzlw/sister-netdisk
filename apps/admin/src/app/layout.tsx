@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     adminEnv.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3502",
   ),
   title: "网盘妹 · 后台",
-  description: "录入和整理网盘分享资源",
+  description: "员工账号与会员管理",
   robots: { index: false, follow: false },
 };
 

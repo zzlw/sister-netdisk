@@ -6,8 +6,7 @@ import { webEnv } from "@/env";
 import "./globals.css";
 
 const siteUrl = webEnv.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3501";
-const siteDescription =
-  "搜索已收录的网盘分享，跳转到对应网盘地址。本站不存储文件。";
+const siteDescription = "聚合公开分享，点结果跳原盘。本站不存储文件。";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

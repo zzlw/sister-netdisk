@@ -21,6 +21,7 @@ infra/docker/nginx/certs/live/
 *.log
 coverage/
 .vercel/
+.neon/
 .DS_Store
 .idea/
 .vscode/*

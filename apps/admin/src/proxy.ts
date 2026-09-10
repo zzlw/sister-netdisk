@@ -2,6 +2,22 @@ import { type NextRequest, NextResponse } from "next/server";
 
 const PUBLIC = new Set(["/login", "/signup"]);
 
+function nextWithForwardedHost(request: NextRequest) {
+  const requestHeaders = new Headers(request.headers);
+  const forwardedHost =
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  const forwardedProto =
+    request.headers.get("x-forwarded-proto") ??
+    (request.nextUrl.protocol === "https:" ? "https" : "http");
+  if (forwardedHost) {
+    requestHeaders.set("x-forwarded-host", forwardedHost);
+  }
+  requestHeaders.set("x-forwarded-proto", forwardedProto);
+  return NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (
@@ -9,7 +25,7 @@ export function proxy(request: NextRequest) {
     pathname.startsWith("/api/auth") ||
     PUBLIC.has(pathname)
   ) {
-    return NextResponse.next();
+    return nextWithForwardedHost(request);
   }
   const session = request.cookies
     .getAll()
@@ -19,7 +35,7 @@ export function proxy(request: NextRequest) {
     login.searchParams.set("next", pathname);
     return NextResponse.redirect(login);
   }
-  return NextResponse.next();
+  return nextWithForwardedHost(request);
 }
 
 export const config = {
