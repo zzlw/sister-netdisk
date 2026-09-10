@@ -48,7 +48,10 @@ export class ResourcesService {
       if (plugins) payload.plugins = plugins;
       const body = await this.pansou.search(payload);
       mapped = mapPansouToResources(body);
-      this.cache.set(cacheKey, mapped);
+      // 冷启动半醒时上游可能给空结果，缓存会把后续正常搜索也挡住。
+      if (mapped.length > 0) {
+        this.cache.set(cacheKey, mapped);
+      }
     }
 
     const scoped = sortResources(
@@ -57,7 +60,9 @@ export class ResourcesService {
     );
     const swept = await this.liveness.sweep(scoped, page, pageSize);
     const cleaned = dropDeadLinks(mapped, (url) => this.liveness.isDead(url));
-    this.cache.set(cacheKey, cleaned);
+    if (cleaned.length > 0) {
+      this.cache.set(cacheKey, cleaned);
+    }
     const result = paginateResources(swept.items, {
       page,
       pageSize,

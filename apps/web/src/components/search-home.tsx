@@ -96,6 +96,10 @@ export function SearchHome() {
     setDraft(filters.q);
   }, [filters.q]);
 
+  useEffect(() => {
+    void fetch("/api/health", { cache: "no-store" });
+  }, []);
+
   const queryString = useMemo(
     () =>
       searchQueryString({

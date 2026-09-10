@@ -19,8 +19,8 @@ const envSchema = z.object({
     .number()
     .int()
     .min(1000)
-    .max(30_000)
-    .default(10_000),
+    .max(60_000)
+    .default(30_000),
   PANSOU_CHANNELS: z.string().optional().default(""),
   PANSOU_PLUGINS: z.string().optional().default(""),
   PANSOU_CACHE_TTL_MS: z.coerce
