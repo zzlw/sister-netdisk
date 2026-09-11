@@ -12,8 +12,6 @@
       "!**/dist",
       "!**/coverage",
       "!**/next-env.d.ts",
-      // Drizzle 生成的迁移，不碰
-      "!packages/db/drizzle",
       // 静态资源不是源码。Biome 会把 public 里的 .svg 当代码检 a11y，
       // 但资源图的替代文本该写在引用它的 <img alt> 上
       "!apps/*/public",
@@ -34,8 +32,6 @@
       "semicolons": "always"
     },
     "parser": {
-      // NestJS 的 @Body() / @Param() / @Session() 是参数装饰器，
-      // 不开这个 Biome 直接解析失败（Decorators are not valid here）
       "unsafeParameterDecoratorsEnabled": true
     }
   },
@@ -43,8 +39,6 @@
     "enabled": true,
     "rules": {
       "preset": "recommended",
-      // Nest 构造注入要保留值导入。useImportType 会收成 import type，
-      // 运行时 metadata 就丢了，启动报 UnknownDependenciesException。
       "style": {
         "useImportType": "off"
       }
@@ -64,13 +58,6 @@
       "includes": [
         "packages/ui/src/components/**",
         "packages/ui/src/hooks/**",
-        "apps/admin/src/components/app-sidebar.tsx",
-        "apps/admin/src/components/chart-area-interactive.tsx",
-        "apps/admin/src/components/data-table.tsx",
-        "apps/admin/src/components/nav-documents.tsx",
-        "apps/admin/src/components/nav-secondary.tsx",
-        "apps/admin/src/components/section-cards.tsx",
-        "!packages/ui/src/components/login-form.tsx",
         "!packages/ui/src/components/overlay-scrollbars.tsx",
         "!packages/ui/src/components/scroll-area.tsx",
         "!packages/ui/src/components/theme-mode-toggle.tsx"

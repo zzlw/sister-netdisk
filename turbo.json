@@ -4,23 +4,14 @@
   "globalDependencies": [".env", "**/.env", "**/.env.local"],
   "globalPassThroughEnv": [
     "NODE_ENV",
-    "API_PORT",
     "WEB_PORT",
-    "ADMIN_PORT",
-    "DATABASE_URL",
-    "BETTER_AUTH_SECRET",
-    "BETTER_AUTH_URL",
-    "CORS_ORIGINS",
-    "NEXT_PUBLIC_API_URL",
     "NEXT_PUBLIC_WEB_URL",
-    "NEXT_PUBLIC_ADMIN_URL",
-    "NEXT_PUBLIC_S3_PUBLIC_DOMAIN",
-    "API_INTERNAL_URL",
     "PANSOU_URL",
     "PANSOU_TIMEOUT_MS",
     "PANSOU_CHANNELS",
     "PANSOU_PLUGINS",
-    "PANSOU_CACHE_TTL_MS"
+    "PANSOU_CACHE_TTL_MS",
+    "SHARE_CHECK_ENABLED"
   ],
   "tasks": {
     "build": {
@@ -39,16 +30,6 @@
     "test": {
       "dependsOn": ["^build"],
       "outputs": []
-    },
-    "generate": {
-      "cache": false
-    },
-    "migrate": {
-      "cache": false
-    },
-    "studio": {
-      "cache": false,
-      "persistent": true
     }
   }
 }

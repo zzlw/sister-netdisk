@@ -198,26 +198,6 @@ export function SearchHome() {
       data-slot="search-home"
       className="flex min-h-svh flex-col bg-background text-foreground"
     >
-      {/* <header className="page-bleed sticky top-0 z-40 border-b bg-background pt-[env(safe-area-inset-top)]">
-        <div className="page-shell-wide flex min-h-14 items-center justify-between">
-          <span className="text-sm font-semibold tracking-tight">网盘妹</span>
-          <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link
-              href="/login"
-              className="inline-flex min-h-11 items-center px-2 hover:text-foreground"
-            >
-              登录
-            </Link>
-            <Link
-              href="/account"
-              className="inline-flex min-h-11 items-center px-2 hover:text-foreground"
-            >
-              个人中心
-            </Link>
-          </nav>
-        </div>
-      </header> */}
-
       <main
         id="main"
         className="page-shell-wide flex flex-1 flex-col py-[clamp(2.5rem,1.8rem+3vw,5rem)] pb-[max(4rem,env(safe-area-inset-bottom))]"

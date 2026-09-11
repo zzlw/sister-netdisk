@@ -1,7 +1,6 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 
-const apiOrigin = process.env.API_INTERNAL_URL ?? "http://localhost:3500";
 const isVercel = Boolean(process.env.VERCEL);
 
 const nextConfig: NextConfig = {
@@ -12,22 +11,6 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@repo/shared", "@repo/ui"],
   images: {
     formats: ["image/avif", "image/webp"],
-    remotePatterns: [
-      {
-        protocol: "http",
-        hostname: "localhost",
-        port: "3590",
-        pathname: "/**",
-      },
-    ],
-  },
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${apiOrigin}/api/:path*`,
-      },
-    ];
   },
 };
 

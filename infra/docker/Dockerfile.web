@@ -8,14 +8,10 @@ COPY apps/web/package.json apps/web/package.json
 RUN pnpm install --frozen-lockfile --filter @repo/shared --filter @repo/ui --filter @repo/web...
 
 FROM deps AS build
-ARG API_INTERNAL_URL=http://api:3000
 ARG NEXT_PUBLIC_WEB_URL
-ARG NEXT_PUBLIC_ADMIN_URL
-ARG NEXT_PUBLIC_API_URL=/api
-ENV API_INTERNAL_URL=$API_INTERNAL_URL
+ARG PANSOU_URL=http://pansou:8888
 ENV NEXT_PUBLIC_WEB_URL=$NEXT_PUBLIC_WEB_URL
-ENV NEXT_PUBLIC_ADMIN_URL=$NEXT_PUBLIC_ADMIN_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV PANSOU_URL=$PANSOU_URL
 COPY packages/shared packages/shared
 COPY packages/ui packages/ui
 COPY apps/web apps/web

@@ -7,10 +7,8 @@ const optionalUrl = z.preprocess(
 
 export const webEnv = z
   .object({
-    API_INTERNAL_URL: optionalUrl,
     NEXT_PUBLIC_WEB_URL: optionalUrl,
   })
   .parse({
-    API_INTERNAL_URL: process.env.API_INTERNAL_URL,
     NEXT_PUBLIC_WEB_URL: process.env.NEXT_PUBLIC_WEB_URL,
   });

@@ -102,63 +102,38 @@ SWAGGER=0
 
 ## 不要
 
-- 把 Nest 打成 Serverless；默认也不要把 web / admin 拆到 Vercel（`wangpanmei.com` 指定拆法见下一节）
-- 宿主机暴露 3000 / 3001 / 3002 / 5432
-- 证书、`.env.prod.local`、Railway / Vercel 密钥进 git
-- 用 Caddy / Traefik 换掉 Compose 方案（用户要改口再换）
-- 为了省事 HTTP-01 只签 www、admin 用自签
+- 重新加 Nest、admin、Postgres 或登录，除非用户明确改口
+- 宿主机暴露 3000 / 5432
+- 证书、`.env.prod.local`、Render / Vercel 密钥进 git
 - 大陆用户站走 Cloudflare 橙色云 / 代签，或把本域 NS 迁到 Cloudflare
 
-## Vercel + Railway（wangpanmei.com）
+## 当前线上（wangpanmei.com）
 
-你指定的免费起步拆法：C/B 上 Vercel（阿里云 CNAME 到 Vercel 中国节点），Nest + Postgres + Pansou 上 Railway。浏览器仍然只打当前站点的 `/api`，Next rewrite 到 Railway，不直连 Nest。权威 DNS 留在阿里云，记录加在阿里云。不要迁 NS，不要橙色云。
-
-Hobby / 试用额度会很快烧完（Pansou 建议约 1GB，再加上 Nest 和 Postgres）。Railway 源站在海外，只给 Vercel 回源。海外探国内网盘死链可能不准，必要时关掉 `SHARE_CHECK_*`。控制台登录和付款要你本机完成。
+C 端在 Vercel，搜索引擎 Pansou 在 Render。没有 Nest、没有 Postgres、没有后台。浏览器打同源 `/api`，由 Next Route Handler 服务端转 Pansou。
 
 ```
 大陆访客 → 阿里云 DNS
-  www / admin CNAME → cname-china.vercel-dns.com → Vercel web 或 admin
-  Vercel /api rewrite → Railway Nest → Postgres / Pansou
+  www CNAME → cname-china.vercel-dns.com → Vercel web
+  /api/resources/search → Pansou（Render）
 ```
 
 | 主机名 | 落点 |
 |---|---|
 | `www.wangpanmei.com` | Vercel `@repo/web` |
-| `admin.wangpanmei.com` | Vercel `@repo/admin` |
-| `wangpanmei.com` | 阿里云 URL 转发 301 → `www` |
-| Nest / Pansou | 不配公网域名；Vercel 用 `https://<railway-api>.up.railway.app` |
+| `wangpanmei.com` | Vercel 301 → `www` |
+| Pansou | `https://sister-netdisk-pansou.onrender.com`（不配品牌域） |
 
-### Railway
+Vercel 环境变量：
 
-见 [`infra/railway/README.md`](infra/railway/README.md)。同一项目：Postgres 插件 + Pansou 锁定镜像 + API（`infra/docker/Dockerfile.api`，启动先迁移再起 Nest）。API / Pansou **关掉 sleep**。变量清单 [`infra/railway/api.env.example`](infra/railway/api.env.example)，Pansou 环境抄 [`infra/docker/pansou.env`](infra/docker/pansou.env)。生产禁止 seed。
-
-```
-BETTER_AUTH_URL=https://www.wangpanmei.com
-CORS_ORIGINS=https://www.wangpanmei.com,https://admin.wangpanmei.com
-WEB_URL=https://www.wangpanmei.com
-ADMIN_URL=https://admin.wangpanmei.com
-PANSOU_URL=http://<pansou>.railway.internal:8888
-```
-
-Vercel rewrite 必须带 `X-Forwarded-Host` / `X-Forwarded-Proto`。仓库已开 Express `trust proxy` 和 Better Auth `trustedProxyHeaders`，否则 Cookie 会写到 `*.up.railway.app`。www 和 admin 不共享 Cookie。
-
-### Vercel
-
-见 [`infra/vercel/README.md`](infra/vercel/README.md)。两个项目都连本仓库 `main`，Root Directory 分别是 `apps/web`、`apps/admin`：
-
-- 安装：仓库根 `pnpm install --frozen-lockfile`
-- 构建：`pnpm --filter @repo/web` 或 `@repo/admin` `build`
-- `API_INTERNAL_URL=https://<railway-api>.up.railway.app`（不要 `NEXT_PUBLIC_`）
+- `PANSOU_URL=https://sister-netdisk-pansou.onrender.com`（不要 `NEXT_PUBLIC_`）
+- `PANSOU_TIMEOUT_MS=30000`
+- `SHARE_CHECK_ENABLED=false`
 - `NEXT_PUBLIC_WEB_URL=https://www.wangpanmei.com`
-- `NEXT_PUBLIC_ADMIN_URL=https://admin.wangpanmei.com`
-- `NEXT_PUBLIC_API_URL=/api`
 
-Custom Domain 加 `www.wangpanmei.com`、`admin.wangpanmei.com`。
+GitHub Actions `Keep Render awake` 每 10 分钟探活 Pansou。免费档仍可能偶发休眠。
 
 ### 阿里云解析
 
 - `www` CNAME → `cname-china.vercel-dns.com`
-- `admin` CNAME → `cname-china.vercel-dns.com`
-- `@` 显性 URL 转发到 `https://www.wangpanmei.com`（阿里云要备案；未备案改 A `76.76.21.21`，由 Vercel 301 到 www）
+- `@` A `76.76.21.21`，由 Vercel 301 到 www
 
-加完后 `dig www.wangpanmei.com` 确认公网是中国区优化节点，不是默认 `cname.vercel-dns.com`。

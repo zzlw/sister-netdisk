@@ -10,9 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
-      BETTER_AUTH_SECRET: ci-better-auth-secret-32chars
-      BETTER_AUTH_URL: http://127.0.0.1:4000
+      PANSOU_URL: http://127.0.0.1:3588
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -22,50 +20,3 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
-
-  api-e2e:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: ci
-          POSTGRES_PASSWORD: ci
-          POSTGRES_DB: ci
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U ci -d ci"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
-      API_PORT: "4000"
-      API_E2E_URL: http://127.0.0.1:4000
-      BETTER_AUTH_SECRET: ci-better-auth-secret-32chars
-      BETTER_AUTH_URL: http://127.0.0.1:4000
-      CORS_ORIGINS: http://localhost:3001,http://localhost:3002
-      WEB_URL: http://localhost:3001
-      ADMIN_URL: http://localhost:3002
-      E2E_ORIGIN: http://localhost:3001
-      E2E_ADMIN_ORIGIN: http://localhost:3002
-      DEV_ADMIN_EMAIL: admin@example.com
-      DEV_ADMIN_PASSWORD: password
-      DEV_USER_EMAIL: user@example.com
-      DEV_USER_PASSWORD: password
-      SWAGGER: "1"
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @repo/shared --filter @repo/db --filter @repo/api build
-      - run: pnpm --filter @repo/db migrate
-      - run: pnpm --filter @repo/db seed
-      - run: node apps/api/dist/main.js &
-      - run: bash scripts/e2e-api.sh

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 服务器滚动发布。用法：./deploy.sh [all|api|web|admin] [tag]
+# 服务器滚动发布。用法：./deploy.sh [all|web|pansou|gateway] [tag]
 set -euo pipefail
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -20,25 +20,13 @@ COMPOSE+=(--env-file "$DIR/.env.prod" --env-file "$DIR/.env.prod.local")
 cd "$DIR"
 
 if [[ "$SERVICE" == "all" ]]; then
-  "${COMPOSE[@]}" pull api web admin
+  "${COMPOSE[@]}" pull web
 else
-  "${COMPOSE[@]}" pull "$SERVICE"
+  "${COMPOSE[@]}" pull "$SERVICE" || true
 fi
 
-"${COMPOSE[@]}" up -d postgres
-echo "等待 Postgres…"
-for _ in $(seq 1 30); do
-  if "${COMPOSE[@]}" exec -T postgres pg_isready -q; then
-    break
-  fi
-  sleep 2
-done
-
-echo "迁移数据库"
-"${COMPOSE[@]}" run --rm --no-deps --workdir /app --entrypoint pnpm api --filter @repo/db migrate
-
 if [[ "$SERVICE" == "all" ]]; then
-  "${COMPOSE[@]}" up -d api web admin gateway
+  "${COMPOSE[@]}" up -d pansou web gateway
 else
   "${COMPOSE[@]}" up -d "$SERVICE"
 fi

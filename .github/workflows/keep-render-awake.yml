@@ -10,12 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Ping Nest and Pansou
+      - name: Ping Pansou
         run: |
-          set -u
-          fail=0
           curl -fsS --retry 2 --retry-all-errors --max-time 90 \
-            https://sister-netdisk-api.onrender.com/api/health || fail=1
-          curl -fsS --retry 2 --retry-all-errors --max-time 90 \
-            https://sister-netdisk-pansou.onrender.com/api/health || fail=1
-          exit "$fail"
+            https://sister-netdisk-pansou.onrender.com/api/health

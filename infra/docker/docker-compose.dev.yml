@@ -1,30 +1,8 @@
 # 应用跑在宿主机，依赖跑在容器。
-# pnpm db:up / db:down / db:logs / db:clean
-# 本地对象存储用 RustFS（S3 兼容）。生产走阿里云 OSS，不要自建。
+# pnpm pansou:up 起搜索引擎。本地对象存储用 RustFS（S3 兼容）。
 name: sister-netdisk
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: sister-netdisk_postgres_dev
-    restart: unless-stopped
-    ports:
-      - "${POSTGRES_HOST_PORT}:5432"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - dev
-
   rustfs_perms:
     image: busybox:1.37
     profiles: ["storage"]
@@ -78,7 +56,7 @@ services:
       RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
       RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY_ID}
       RUSTFS_SECRET_KEY: ${S3_ACCESS_KEY_SECRET}
-      RUSTFS_CORS_ALLOWED_ORIGINS: ${CORS_ORIGINS}
+      RUSTFS_CORS_ALLOWED_ORIGINS: ${NEXT_PUBLIC_WEB_URL}
     volumes:
       - rustfs_data:/data
     healthcheck:
@@ -91,8 +69,6 @@ services:
       - dev
 
 volumes:
-  pg_data:
-    name: sister-netdisk_pg_data
   rustfs_data:
     name: sister-netdisk_rustfs_data
   pansou_cache:
